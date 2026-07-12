@@ -1,5 +1,8 @@
 # ScamShield AI
 
+[![Deploy to Render](https://render.com/images/deploy-to-render.svg)](https://render.com/deploy?repo=https://github.com/sahusumit093434-cyber/AI_scamshield)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsahusumit093434-cyber%2FAI_scamshield&root-directory=client)
+
 Production-oriented MERN application for analysing potentially fraudulent text, URLs, screenshots and QR-code destinations.
 
 ## Quick start
