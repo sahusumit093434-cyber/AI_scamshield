@@ -7,3 +7,4 @@ app.use(helmet({crossOriginResourcePolicy:{policy:'cross-origin'}})); app.use(co
 app.get('/api/health',(_,res)=>res.json({ok:true,service:'ScamShield AI'})); app.use('/api/auth',authRoutes); app.use('/api/analyses',analysisRoutes); app.use('/api/reports',reportRoutes); app.use('/api/admin',adminRoutes);
 app.use((err,req,res,next)=>{console.error(err.message); const status=err.status||(err.isJoi?400:500); res.status(status).json({message:err.isJoi?'Invalid request data':err.message||'Server error'});});
 const port=process.env.PORT||5000; mongoose.connect(process.env.MONGO_URI||'mongodb://127.0.0.1:27017/scamshield').then(()=>app.listen(port,()=>console.log(`API listening on ${port}`))).catch(e=>{console.warn('MongoDB connection failed, starting server in offline mode:',e.message); app.listen(port,()=>console.log(`API listening on ${port} (OFFLINE MODE)`))});
+export default app;
