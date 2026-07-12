@@ -1,0 +1,27 @@
+
+> dev
+> nodemon index.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node index.js`[39m
+file:///C:/Users/sahus/Documents/Codex/2026-07-12/se/server/routes/admin.js:1
+import {Router} from 'express'; import User from '../models/User.js'; import Analysis from '../models/Analysis.js'; import Report from '../models/Report.js'; import {protect,admin} from '../middleware/auth.js'; const r=Router();r.use(protect,admin);r.get('/stats',async(req,res,next)=>{try{const [users,analyses,reports,risks]=await Promise.all([User.countDocuments(),Analysis.countDocuments(),Report.countDocuments(),Analysis.aggregate([{$group:{_id:'$riskLevel',count:{$sum:1}}])]);res.json({users,analyses,reports,risks})}catch(e){next(e)}});r.get('/users',async(req,res,next)=>{try{res.json(await User.find().select('-password').sort('-createdAt').limit(100))}catch(e){next(e)}});r.delete('/users/:id',async(req,res,next)=>{try{if(req.params.id===String(req.user._id))return res.status(400).json({message:'Cannot delete yourself'});await User.findByIdAndDelete(req.params.id);res.status(204).end()}catch(e){next(e)}});export default r;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^
+
+SyntaxError: Unexpected token ']'
+    at compileSourceTextModule (node:internal/modules/esm/utils:318:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:99:18)
+    at #translate (node:internal/modules/esm/loader:473:20)
+    at afterLoad (node:internal/modules/esm/loader:529:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:534:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:577:36)
+    at afterResolve (node:internal/modules/esm/loader:625:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:631:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:245:17)
+
+Node.js v24.14.1
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
