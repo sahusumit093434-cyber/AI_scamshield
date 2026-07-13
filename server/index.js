@@ -69,3 +69,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`ScamShield AI Backend server running in development mode on port ${PORT}`);
 });
+
+export default app;

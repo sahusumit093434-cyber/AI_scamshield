@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/scamshield';
+const uri = 'mongodb+srv://AI_scamshield:Sumit3434@ac-1cjfxf5.ybp546k.mongodb.net/scamshield?retryWrites=true&w=majority';
 console.log('Testing connection to:', uri.replace(/:[^@]+@/, ':****@'));
 
 mongoose.connect(uri)
