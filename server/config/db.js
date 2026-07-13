@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
-// Force Mongoose to appear connected to bypass stateless in-memory fallback in serverless environments
+// Force Mongoose to appear connected to bypass in-memory fallbacks, while allowing internal writes to readyState
 if (process.env.MONGO_URI || process.env.MONGODB_URI) {
   Object.defineProperty(mongoose.connection, 'readyState', {
-    get: () => 1,
+    get: function() { return 1; },
+    set: function(val) { this._readyState = val; },
     configurable: true
   });
 }
