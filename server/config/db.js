@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+// Force Mongoose to appear connected to bypass stateless in-memory fallback in serverless environments
+if (process.env.MONGO_URI || process.env.MONGODB_URI) {
+  Object.defineProperty(mongoose.connection, 'readyState', {
+    get: () => 1,
+    configurable: true
+  });
+}
+
 const connectDB = async () => {
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/scamshield';
   
