@@ -4,7 +4,10 @@ const connectDB = async () => {
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/scamshield';
   
   try {
-    const conn = await mongoose.connect(uri);
+    const conn = await mongoose.connect(uri, {
+      family: 4,
+      serverSelectionTimeoutMS: 5000
+    });
     console.log(`MongoDB Connected successfully: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
