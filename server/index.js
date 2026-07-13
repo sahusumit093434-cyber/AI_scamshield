@@ -19,6 +19,9 @@ connectDB();
 
 const app = express();
 
+// Trust reverse proxy (Vercel) for client IP detection in rate limiters
+app.set('trust proxy', 1);
+
 // Security Middlewares
 app.use(helmet({
   crossOriginResourcePolicy: false, // allow data URI screenshots in frontend
