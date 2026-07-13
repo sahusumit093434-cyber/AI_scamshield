@@ -36,7 +36,7 @@ const Dashboard = () => {
       }
 
       // Reload user profile to refresh counts
-      await reloadProfile();
+      await reloadProfile(true);
 
       // Retrieve full history to calculate counts (simulation of stats)
       const resFull = await axios.get('/api/analyses/history?limit=100');

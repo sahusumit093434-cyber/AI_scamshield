@@ -23,9 +23,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) {
+        setLoading(true);
+      }
       const response = await axios.get('/api/auth/profile');
       const data = response.data;
       if (data && (data.success || data.user)) {
@@ -37,7 +39,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Profile fetch failed:', error.response?.data?.message || error.message);
       logout();
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
   };
 
