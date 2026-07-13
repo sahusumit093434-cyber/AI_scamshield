@@ -44,6 +44,52 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'ScamShield AI backend is fully functional' });
 });
 
+// Diagnostic DB connection endpoint
+app.get('/api/test-db', async (req, res) => {
+  const log = [];
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  log.push(`Using URI: ${uri ? uri.replace(/:[^@]+@/, ':****@') : 'undefined'}`);
+
+  try {
+    const { Resolver } = await import('dns/promises');
+    const resolver = new Resolver();
+    const hostname = uri ? uri.replace(/^mongodb(\+srv)?:\/\//, '').split(/[/?@]/)[0].split(',')[0].split(':')[0] : 'localhost';
+    log.push(`Parsed hostname: ${hostname}`);
+    
+    const ips = await resolver.resolve4(hostname).catch(e => {
+      log.push(`IPv4 Resolve Failed: ${e.message}`);
+      return [];
+    });
+    log.push(`Resolved IPv4 IPs: ${ips.join(', ')}`);
+
+    if (uri && uri.startsWith('mongodb+srv://')) {
+      log.push(`Resolving SRV record for: _mongodb._tcp.${hostname}`);
+      const srv = await resolver.resolveSrv(`_mongodb._tcp.${hostname}`).catch(e => {
+        log.push(`SRV Resolve Failed: ${e.message}`);
+        return [];
+      });
+      log.push(`Resolved SRV nodes: ${srv.map(s => `${s.name}:${s.port}`).join(', ')}`);
+    }
+  } catch (dnsErr) {
+    log.push(`DNS check crashed: ${dnsErr.message}`);
+  }
+
+  try {
+    log.push('Attempting mongoose connection with 4000ms timeout...');
+    const mongooseModule = await import('mongoose');
+    const mongooseInstance = await mongooseModule.default.createConnection(uri, {
+      serverSelectionTimeoutMS: 4000,
+      family: 4
+    }).asPromise();
+    log.push(`Successfully connected to host: ${mongooseInstance.host}`);
+    await mongooseInstance.close();
+  } catch (connErr) {
+    log.push(`Mongoose connection failed: ${connErr.message}`);
+  }
+
+  res.status(200).json({ logs: log });
+});
+
 // Map routes
 app.use('/api/auth', authRoutes);
 app.use('/api/analyses', analysisRoutes);
