@@ -4,18 +4,21 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 let aiModel = null;
-const apiKey = process.env.GEMINI_API_KEY;
+const geminiKey = process.env.GEMINI_API_KEY;
+const openaiKey = process.env.OPENAI_API_KEY;
 
-if (apiKey && apiKey.trim() !== '' && apiKey !== 'your_google_gemini_api_key_here') {
+if (openaiKey && openaiKey.trim() !== '') {
+  console.log('OpenAI GPT-4o-mini Service initialized successfully.');
+} else if (geminiKey && geminiKey.trim() !== '' && geminiKey !== 'your_google_gemini_api_key_here') {
   try {
-    const ai = new GoogleGenerativeAI(apiKey);
+    const ai = new GoogleGenerativeAI(geminiKey);
     aiModel = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     console.log('Gemini AI Service initialized successfully.');
   } catch (error) {
     console.error('Error initializing Gemini AI Service:', error.message);
   }
 } else {
-  console.log('Gemini API key not configured. Using rule-based fallback scam analyzer.');
+  console.log('No AI API key configured. Using rule-based fallback scam analyzer.');
 }
 
 /**
@@ -144,11 +147,6 @@ export async function analyzeScamText(text, type = 'text') {
     throw new Error('Analysis input text is empty');
   }
 
-  if (!aiModel) {
-    // Fallback to rules if Gemini is offline
-    return runFallbackAnalysis(text, type);
-  }
-
   const prompt = `
   You are an expert cybersecurity scam detection assistant.
   Analyze the following content (extracted via ${type}) for online scams, phishing attempts, financial fraud, impersonation, or credential theft:
@@ -169,21 +167,62 @@ export async function analyzeScamText(text, type = 'text') {
   }
   `;
 
-  try {
-    const result = await aiModel.generateContent(prompt);
-    const response = await result.response;
-    const jsonResult = parseGeminiResponse(response.text());
-    
-    // Ensure all required fields exist
-    return {
-      scamScore: typeof jsonResult.scamScore === 'number' ? jsonResult.scamScore : 50,
-      riskLevel: ['Safe', 'Suspicious', 'Dangerous'].includes(jsonResult.riskLevel) ? jsonResult.riskLevel : 'Suspicious',
-      explanation: jsonResult.explanation || 'Analyzed by AI backend.',
-      redFlags: Array.isArray(jsonResult.redFlags) ? jsonResult.redFlags : [],
-      recommendations: Array.isArray(jsonResult.recommendations) ? jsonResult.recommendations : []
-    };
-  } catch (error) {
-    console.error('Gemini API call failed, falling back to local analyzer. Error:', error.message);
-    return runFallbackAnalysis(text, type);
+  // 1. Try OpenAI if key is present
+  if (openaiKey && openaiKey.trim() !== '') {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI responded with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      const jsonResult = JSON.parse(content.trim());
+      
+      return {
+        scamScore: typeof jsonResult.scamScore === 'number' ? jsonResult.scamScore : 50,
+        riskLevel: ['Safe', 'Suspicious', 'Dangerous'].includes(jsonResult.riskLevel) ? jsonResult.riskLevel : 'Suspicious',
+        explanation: jsonResult.explanation || 'Analyzed by AI backend.',
+        redFlags: Array.isArray(jsonResult.redFlags) ? jsonResult.redFlags : [],
+        recommendations: Array.isArray(jsonResult.recommendations) ? jsonResult.recommendations : []
+      };
+    } catch (openaiErr) {
+      console.warn('OpenAI API call failed, trying Gemini or heuristics. Error:', openaiErr.message);
+    }
   }
+
+  // 2. Try Gemini if configured
+  if (aiModel) {
+    try {
+      const result = await aiModel.generateContent(prompt);
+      const response = await result.response;
+      const jsonResult = parseGeminiResponse(response.text());
+      
+      return {
+        scamScore: typeof jsonResult.scamScore === 'number' ? jsonResult.scamScore : 50,
+        riskLevel: ['Safe', 'Suspicious', 'Dangerous'].includes(jsonResult.riskLevel) ? jsonResult.riskLevel : 'Suspicious',
+        explanation: jsonResult.explanation || 'Analyzed by AI backend.',
+        redFlags: Array.isArray(jsonResult.redFlags) ? jsonResult.redFlags : [],
+        recommendations: Array.isArray(jsonResult.recommendations) ? jsonResult.recommendations : []
+      };
+    } catch (error) {
+      console.error('Gemini API call failed, falling back to local analyzer. Error:', error.message);
+    }
+  }
+
+  // 3. Fallback to local rule heuristics
+  return runFallbackAnalysis(text, type);
 }
