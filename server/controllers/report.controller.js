@@ -22,7 +22,7 @@ export const createReport = async (req, res) => {
       screenshotUrl = `data:${req.file.mimetype};base64,${base64Image}`;
     }
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const report = await Report.create({
         userId: req.user.id,
         username: req.user.name,
@@ -77,7 +77,7 @@ export const getReports = async (req, res) => {
   const { search = '', filterType = '' } = req.query;
 
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const query = {};
 
       if (search) {
@@ -139,7 +139,7 @@ export const getReports = async (req, res) => {
  */
 export const getReportById = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const report = await Report.findById(req.params.id);
       if (!report) {
         return res.status(404).json({ success: false, message: 'Scam report not found.' });
@@ -165,7 +165,7 @@ export const getReportById = async (req, res) => {
  */
 export const upvoteReport = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const report = await Report.findById(req.params.id);
       if (!report) {
         return res.status(404).json({ success: false, message: 'Report not found.' });
@@ -212,7 +212,7 @@ export const commentOnReport = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Comment text cannot be empty.' });
     }
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const report = await Report.findById(req.params.id);
       if (!report) {
         return res.status(404).json({ success: false, message: 'Report not found.' });
@@ -258,7 +258,7 @@ export const commentOnReport = async (req, res) => {
  */
 export const deleteReport = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const report = await Report.findById(req.params.id);
       if (!report) {
         return res.status(404).json({ success: false, message: 'Report not found.' });

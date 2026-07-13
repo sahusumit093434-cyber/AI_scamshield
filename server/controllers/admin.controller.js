@@ -12,7 +12,7 @@ import { inMemoryUsers, inMemoryAnalyses, inMemoryReports, inMemoryBlockedUrls }
  */
 export const getAdminStats = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       // Live MongoDB Mode
       const totalUsers = await User.countDocuments({});
       const totalAnalyses = await Analysis.countDocuments({});
@@ -81,7 +81,7 @@ export const getAdminStats = async (req, res) => {
  */
 export const getAllUsers = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const users = await User.find({}).select('-password').sort({ createdAt: -1 });
       return res.status(200).json({ success: true, data: users });
     } else {
@@ -102,7 +102,7 @@ export const getAllUsers = async (req, res) => {
  */
 export const toggleUserBlock = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const user = await User.findById(req.params.id);
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found.' });
@@ -142,7 +142,7 @@ export const toggleUserBlock = async (req, res) => {
  */
 export const deleteUser = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const user = await User.findById(req.params.id);
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found.' });
@@ -195,7 +195,7 @@ export const deleteUser = async (req, res) => {
  */
 export const getBlacklistedUrls = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const list = await BlockedUrl.find({}).sort({ createdAt: -1 });
       return res.status(200).json({ success: true, data: list });
     } else {
@@ -227,7 +227,7 @@ export const addBlacklistedUrl = async (req, res) => {
       cleanUrl = parsed.hostname;
     } catch(e) {}
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const alreadyExists = await BlockedUrl.findOne({ url: cleanUrl });
       if (alreadyExists) {
         return res.status(400).json({ success: false, message: 'URL/domain is already present on the blacklist.' });
@@ -268,7 +268,7 @@ export const addBlacklistedUrl = async (req, res) => {
  */
 export const removeBlacklistedUrl = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const blocked = await BlockedUrl.findById(req.params.id);
       if (!blocked) {
         return res.status(404).json({ success: false, message: 'Blacklist entry not found.' });

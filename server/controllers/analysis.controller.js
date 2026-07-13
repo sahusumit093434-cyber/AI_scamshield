@@ -10,7 +10,7 @@ import { inMemoryAnalyses, inMemoryUsers } from '../config/inMemoryDb.js';
 const incrementUserAnalyses = async (req) => {
   if (req.user) {
     try {
-      if (mongoose.connection.readyState === 1) {
+      if (true) {
         await User.findByIdAndUpdate(req.user.id, { $inc: { totalAnalyses: 1 } });
       } else {
         const u = inMemoryUsers.find(item => item._id.toString() === req.user.id.toString());
@@ -39,7 +39,7 @@ export const analyzeText = async (req, res) => {
 
     const results = await analyzeScamText(text, 'text');
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const analysis = await Analysis.create({
         userId: req.user ? req.user.id : null,
         type: 'text',
@@ -105,7 +105,7 @@ export const analyzeUrl = async (req, res) => {
       recommendations: reputation.recommendations
     };
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const analysis = await Analysis.create({
         userId: req.user ? req.user.id : null,
         type: 'url',
@@ -148,7 +148,7 @@ export const analyzeScreenshot = async (req, res) => {
     const extractedText = await extractTextFromImage(req.file.buffer);
     const results = await analyzeScamText(extractedText, 'screenshot');
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const analysis = await Analysis.create({
         userId: req.user ? req.user.id : null,
         type: 'screenshot',
@@ -233,7 +233,7 @@ export const analyzeQrCode = async (req, res) => {
       recommendations
     };
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const analysis = await Analysis.create({
         userId: req.user ? req.user.id : null,
         type: 'qr',
@@ -271,7 +271,7 @@ export const getUserHistory = async (req, res) => {
   const { page = 1, limit = 10, search = '', type = '' } = req.query;
 
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       // ----------------------------------------
       // Live MongoDB Mode
       // ----------------------------------------
@@ -344,7 +344,7 @@ export const getUserHistory = async (req, res) => {
  */
 export const deleteAnalysis = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       const analysis = await Analysis.findOne({ _id: req.params.id, userId: req.user.id });
       if (!analysis) {
         return res.status(404).json({ success: false, message: 'Analysis not found or unauthorized.' });

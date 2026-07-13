@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide all details.' });
     }
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       // ----------------------------------------
       // Live MongoDB Mode
       // ----------------------------------------
@@ -112,7 +112,7 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password.' });
     }
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       // ----------------------------------------
       // Live MongoDB Mode
       // ----------------------------------------
@@ -185,7 +185,7 @@ export const loginUser = async (req, res) => {
  */
 export const getUserProfile = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       // ----------------------------------------
       // Live MongoDB Mode
       // ----------------------------------------

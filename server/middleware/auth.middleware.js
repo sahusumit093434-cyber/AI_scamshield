@@ -21,7 +21,7 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'scamshield_local_secret_key_987654321_abcde');
     let user = null;
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       user = await User.findById(decoded.id).select('-password');
     } else {
       // Fallback search in memory
@@ -63,7 +63,7 @@ export const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'scamshield_local_secret_key_987654321_abcde');
     let user = null;
 
-    if (mongoose.connection.readyState === 1) {
+    if (true) {
       user = await User.findById(decoded.id).select('-password');
     } else {
       user = inMemoryUsers.find(u => u._id.toString() === decoded.id.toString());

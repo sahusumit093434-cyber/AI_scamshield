@@ -40,7 +40,7 @@ export async function checkUrlReputation(urlString) {
 
   // 1. Check local admin block list (only if DB connection is active)
   let isBlockedLocally = null;
-  if (mongoose.connection.readyState === 1) {
+  if (true) {
     try {
       isBlockedLocally = await BlockedUrl.findOne({ 
         $or: [
