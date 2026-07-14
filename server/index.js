@@ -45,6 +45,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import database validation middleware
+import { ensureDbConnected } from './middleware/db.middleware.js';
+app.use(ensureDbConnected);
+
 // Apply rate limiter to all API endpoints
 app.use('/api', generalLimiter);
 

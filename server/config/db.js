@@ -1,18 +1,30 @@
 import mongoose from 'mongoose';
 
+let cachedConnection = null;
+
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (cachedConnection) {
+    return cachedConnection;
+  }
+
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/scamshield';
   
   try {
-    const conn = await mongoose.connect(uri, {
+    console.log('Connecting to database...');
+    cachedConnection = await mongoose.connect(uri, {
       family: 4,
       serverSelectionTimeoutMS: 5000
     });
-    console.log(`MongoDB Connected successfully: ${conn.connection.host}`);
+    console.log(`MongoDB Connected successfully: ${mongoose.connection.host}`);
+    return cachedConnection;
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
-    console.log('Ensure your local MongoDB service is running (mongod) or configure MONGODB_URI in your .env file.');
-    // Do not crash the app, let it log so developer knows
+    cachedConnection = null;
+    throw error;
   }
 };
 
