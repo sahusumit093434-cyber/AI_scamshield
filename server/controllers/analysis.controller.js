@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Analysis from '../models/analysis.model.js';
 import User from '../models/user.model.js';
-import { analyzeScamText } from '../services/gemini.service.js';
+import { analyzeScamText, analyzeScamImage } from '../services/gemini.service.js';
 import { checkUrlReputation } from '../services/reputation.service.js';
 import { extractTextFromImage } from '../services/ocr.service.js';
 import { inMemoryAnalyses, inMemoryUsers } from '../config/inMemoryDb.js';
@@ -145,8 +145,8 @@ export const analyzeScreenshot = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please upload a screenshot image.' });
     }
 
-    const extractedText = await extractTextFromImage(req.file.buffer);
-    const results = await analyzeScamText(extractedText, 'screenshot');
+    const results = await analyzeScamImage(req.file.buffer, req.file.mimetype, 'screenshot');
+    const extractedText = results.extractedText;
 
     if (true) {
       const analysis = await Analysis.create({
@@ -187,51 +187,54 @@ export const analyzeQrCode = async (req, res) => {
 
   try {
     let target = qrData;
+    let outputDetails;
 
     if (req.file) {
-      target = 'https://scam-rewards-unlocked.tk/login';
-      const extractedText = await extractTextFromImage(req.file.buffer).catch(() => null);
-      if (extractedText) {
-        const urlRegex = /(https?:\/\/[^\s]+)/;
-        const match = extractedText.match(urlRegex);
-        if (match) target = match[0];
-      }
-    }
-
-    if (!target || target.trim() === '') {
-      return res.status(400).json({ success: false, message: 'Please provide QR code data or image.' });
-    }
-
-    let scamScore = 15;
-    let riskLevel = 'Safe';
-    let explanation = `The QR Code directs to: ${target}. The domain appears to be safe and has no suspicious signatures.`;
-    let redFlags = [];
-    let recommendations = ['Always make sure you trust the destination URL before logging in or making payments.'];
-
-    const isUrl = target.startsWith('http://') || target.startsWith('https://');
-    if (isUrl) {
-      const reputation = await checkUrlReputation(target);
-      scamScore = reputation.riskScore;
-      riskLevel = reputation.isSafe ? 'Safe' : (scamScore > 75 ? 'Dangerous' : 'Suspicious');
-      explanation = `The QR Code directs to: ${target}. ` + (reputation.isSafe ? 'This destination is evaluated as safe.' : 'Warning: Destination displays suspicious patterns.');
-      redFlags = reputation.reasons;
-      recommendations = reputation.recommendations;
+      const results = await analyzeScamImage(req.file.buffer, req.file.mimetype, 'qr');
+      target = results.extractedText || 'Uploaded QR Code';
+      outputDetails = {
+        scamScore: results.scamScore,
+        riskLevel: results.riskLevel,
+        explanation: results.explanation,
+        redFlags: results.redFlags,
+        recommendations: results.recommendations
+      };
     } else {
-      const textAnalysis = await analyzeScamText(target, 'qr');
-      scamScore = textAnalysis.scamScore;
-      riskLevel = textAnalysis.riskLevel;
-      explanation = `The QR Code contains text: "${target}". Analysis: ${textAnalysis.explanation}`;
-      redFlags = textAnalysis.redFlags;
-      recommendations = textAnalysis.recommendations;
-    }
+      if (!target || target.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Please provide QR code data or image.' });
+      }
 
-    const outputDetails = {
-      scamScore,
-      riskLevel,
-      explanation,
-      redFlags,
-      recommendations
-    };
+      let scamScore = 15;
+      let riskLevel = 'Safe';
+      let explanation = `The QR Code directs to: ${target}. The domain appears to be safe and has no suspicious signatures.`;
+      let redFlags = [];
+      let recommendations = ['Always make sure you trust the destination URL before logging in or making payments.'];
+
+      const isUrl = target.startsWith('http://') || target.startsWith('https://');
+      if (isUrl) {
+        const reputation = await checkUrlReputation(target);
+        scamScore = reputation.riskScore;
+        riskLevel = reputation.isSafe ? 'Safe' : (scamScore > 75 ? 'Dangerous' : 'Suspicious');
+        explanation = `The QR Code directs to: ${target}. ` + (reputation.isSafe ? 'This destination is evaluated as safe.' : 'Warning: Destination displays suspicious patterns.');
+        redFlags = reputation.reasons;
+        recommendations = reputation.recommendations;
+      } else {
+        const textAnalysis = await analyzeScamText(target, 'qr');
+        scamScore = textAnalysis.scamScore;
+        riskLevel = textAnalysis.riskLevel;
+        explanation = `The QR Code contains text: "${target}". Analysis: ${textAnalysis.explanation}`;
+        redFlags = textAnalysis.redFlags;
+        recommendations = textAnalysis.recommendations;
+      }
+
+      outputDetails = {
+        scamScore,
+        riskLevel,
+        explanation,
+        redFlags,
+        recommendations
+      };
+    }
 
     if (true) {
       const analysis = await Analysis.create({
